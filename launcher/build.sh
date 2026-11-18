@@ -8,6 +8,8 @@
 #                         RECEIVE_BOOT_COMPLETED (Filter); the Keeper's other two are capped
 #                         at maxSdkVersion 27.
 #   MIN_SDK=28            Android 9+ only, as releases up to 1.1 were
+# Also runs on Windows in Git Bash: there the SDK ships aapt2.exe, d8.bat and apksigner.bat,
+# zip is usually missing (jar is used instead), and native tools want Windows paths.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
@@ -15,23 +17,45 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 source version.env
 MIN_SDK=${MIN_SDK:-25}
 
-SDK=${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}
+WINDOWS=0
+command -v cygpath >/dev/null 2>&1 && WINDOWS=1
+# Turns C:\x into /c/x so bash can test and run it; anything else passes through.
+unix_path() { if [[ $WINDOWS == 1 && -n $1 ]]; then cygpath -u "$1"; else printf '%s\n' "$1"; fi; }
+
+SDK=$(unix_path "${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}")
 if [[ -z $SDK ]]; then
-  for d in /opt/homebrew/share/android-commandlinetools "$HOME/Library/Android/sdk"; do
+  WIN_SDK=""
+  [[ $WINDOWS == 1 && -n ${LOCALAPPDATA:-} ]] && WIN_SDK=$(unix_path "$LOCALAPPDATA")/Android/Sdk
+  for d in /opt/homebrew/share/android-commandlinetools "$HOME/Library/Android/sdk" \
+           "$HOME/Android/Sdk" ${WIN_SDK:+"$WIN_SDK"}; do
     if [[ -f $d/platforms/android-$MIN_SDK/android.jar ]]; then SDK=$d; break; fi
   done
 fi
 JAR=$SDK/platforms/android-$MIN_SDK/android.jar
 BT=$(find "$SDK/build-tools" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort -V | tail -1 || true)
 [[ -f $JAR ]] || { echo "error: $JAR missing — sdkmanager 'platforms;android-$MIN_SDK'" >&2; exit 1; }
-[[ -x $BT/aapt2 ]] || { echo "error: no build-tools in $SDK — sdkmanager 'build-tools;34.0.0'" >&2; exit 1; }
+# A build tool by its bare name, or the .exe / .bat that the Windows SDK has instead.
+tool() {
+  local t
+  for t in "$BT/$1" "$BT/$1.exe" "$BT/$1.bat"; do
+    if [[ -f $t ]]; then printf '%s\n' "$t"; return; fi
+  done
+  printf '%s\n' "$BT/$1"
+}
+AAPT2=$(tool aapt2) D8=$(tool d8) ZIPALIGN=$(tool zipalign) APKSIGNER=$(tool apksigner)
+[[ -f $AAPT2 ]] || { echo "error: no build-tools in $SDK — sdkmanager 'build-tools;34.0.0'" >&2; exit 1; }
 
 JDK17_PATHS=(/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home /usr/lib/jvm/java-17-openjdk)
+for j in "/c/Program Files/Eclipse Adoptium"/jdk-17* "/c/Program Files/Microsoft"/jdk-17*; do
+  [[ -d $j ]] && JDK17_PATHS+=("$j")
+done
 javac_major() { "$1/bin/javac" -version 2>&1 | sed -n 's/^javac \([0-9]*\).*/\1/p'; }
 
+JAVA_HOME=$(unix_path "${JAVA_HOME:-}")
+JAVA_HOME=${JAVA_HOME%/}
 if [[ -z ${JAVA_HOME:-} || ! -x ${JAVA_HOME:-}/bin/javac ]]; then
   for j in "${JDK17_PATHS[@]}" /opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home \
-           "$(/usr/libexec/java_home 2>/dev/null || true)"; do
+           "$(/usr/libexec/java_home 2>/dev/null || true)" "/c/Program Files/Android/Android Studio/jbr"; do
     if [[ -n $j && -x $j/bin/javac ]]; then JAVA_HOME=$j; break; fi
   done
 fi
@@ -61,10 +85,12 @@ fi
 
 WORK=$(mktemp -d "${TMPDIR:-/tmp}/dumbtv-home.XXXXXX")
 trap 'rm -rf "$WORK"' EXIT
+# Native Windows tools read @argfiles and their contents as Windows paths; C:/x works in both.
+if [[ $WINDOWS == 1 ]]; then WORK=$(cygpath -m "$WORK"); fi
 mkdir -p "$WORK/gen" "$WORK/classes" build
 
-"$BT/aapt2" compile --dir res -o "$WORK/res.zip"
-"$BT/aapt2" link -I "$JAR" --manifest AndroidManifest.xml "$WORK/res.zip" \
+"$AAPT2" compile --dir res -o "$WORK/res.zip"
+"$AAPT2" link -I "$JAR" --manifest AndroidManifest.xml "$WORK/res.zip" \
   --min-sdk-version "$MIN_SDK" --target-sdk-version 28 \
   --version-code "$VERSION_CODE" --version-name "$VERSION_NAME" \
   --java "$WORK/gen" -o "$WORK/app.apk"
@@ -74,14 +100,18 @@ find src "$WORK/gen" -name '*.java' > "$WORK/sources.txt"
   -classpath "$JAR" -d "$WORK/classes" @"$WORK/sources.txt"
 
 find "$WORK/classes" -name '*.class' > "$WORK/classes.txt"
-"$BT/d8" --release --min-api "$MIN_SDK" --lib "$JAR" --output "$WORK" @"$WORK/classes.txt"
-(cd "$WORK" && zip -q -X app.apk classes.dex)
+"$D8" --release --min-api "$MIN_SDK" --lib "$JAR" --output "$WORK" @"$WORK/classes.txt"
+if command -v zip >/dev/null 2>&1; then
+  (cd "$WORK" && zip -q -X app.apk classes.dex)
+else
+  (cd "$WORK" && "$JAVA_HOME/bin/jar" --update --no-manifest --file app.apk classes.dex)
+fi
 
-"$BT/zipalign" -f -p 4 "$WORK/app.apk" "$WORK/aligned.apk"
-"$BT/apksigner" sign --ks "$KEYSTORE" --ks-pass "pass:$KEYPASS" --key-pass "pass:$KEYPASS" \
+"$ZIPALIGN" -f -p 4 "$WORK/app.apk" "$WORK/aligned.apk"
+"$APKSIGNER" sign --ks "$KEYSTORE" --ks-pass "pass:$KEYPASS" --key-pass "pass:$KEYPASS" \
   --out build/dumbtv-home.apk "$WORK/aligned.apk"
-"$BT/apksigner" verify build/dumbtv-home.apk
+"$APKSIGNER" verify build/dumbtv-home.apk
 
-perms=$("$BT/aapt2" dump permissions build/dumbtv-home.apk | grep -c 'uses-permission' || true)
+perms=$("$AAPT2" dump permissions build/dumbtv-home.apk | grep -c 'uses-permission' || true)
 printf 'built build/dumbtv-home.apk  %s bytes  %s uses-permission entries\n' \
   "$(wc -c < build/dumbtv-home.apk | tr -d ' ')" "$perms"
