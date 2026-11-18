@@ -185,6 +185,23 @@ adb shell pm disable-user --user 0 <pack package>
 
 The icons are the pack author's, under the pack's licence.
 
+## Screensaver
+
+dumbtv home carries its own screensaver (`Screensaver.java`, a `DreamService`): the images in
+`/sdcard/Android/media/tv.dumbtv.home/screensaver/` cross-fade with a slow zoom, under a clock.
+A file named `Category - Title - 1.jpg` is captioned with the category over the title. It
+reads local files only, so the app still has no internet access and no new permission.
+
+```sh
+python3 -I scripts/screensaver-images.py      # optional: series, anime and film backdrops
+./scripts/screensaver.sh screensaver-images   # push a folder (or files) and turn it on
+./scripts/screensaver.sh --minutes 5          # idle time before it starts
+./scripts/screensaver.sh --off                # back to the TV's own screensaver
+```
+
+The TV starts it at its idle timeout, like Amazon's. `scripts/restore.sh` hands the TV's own
+screensaver back, since this one goes away with the launcher.
+
 ## Languages
 
 dumbtv home follows the TV's language: English, German, Italian, Portuguese (Brazil) and Spanish so far.
@@ -405,6 +422,11 @@ sdkmanager "platforms;android-25" "build-tools;34.0.0"
 On Linux, set `ANDROID_HOME`; `build.sh` finds a JDK 17 in
 `/usr/lib/jvm/java-17-openjdk` (Arch: `pacman -S jdk17-openjdk`). It prefers JDK 17
 because build-tools 34's `d8` has crashed on classes from newer JDKs.
+
+On Windows, run it from Git Bash with the SDK Android Studio installs
+(`%LOCALAPPDATA%\Android\Sdk`, found on its own): `build.sh` uses the SDK's `.exe`/`.bat`
+tools, Windows paths for them, and the JDK's `jar` when there is no `zip`. It was built
+there with JDK 25 and build-tools 37; with build-tools 34, prefer a JDK 17.
 
 Your build is signed with a key `build.sh` creates on first run, and Android will
 not update the release with it or the other way round. `install.sh` says so; back

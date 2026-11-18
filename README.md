@@ -1,3 +1,33 @@
+> [!NOTE]
+> **Este é um fork pessoal do [dumbtv](https://github.com/humblemuzzu/dumbtv)**, ajustado para
+> uma Fire TV no Brasil. O README original continua abaixo da linha. O que muda aqui:
+>
+> | O que foi feito | Onde |
+> |---|---|
+> | **Launcher em português (Brasil).** Todos os textos do dumbtv home traduzidos. Também foi enviado como PR para o projeto original. | `launcher/res/values-pt/` |
+> | **Protetor de tela dentro do launcher**, sem instalar outro app. Imagens trocam com fusão suave, zoom lento, legenda (categoria e título) e relógio. Continua sem internet e sem permissão nova. | `launcher/src/tv/dumbtv/home/Screensaver.java` |
+> | **`scripts/screensaver.sh`** manda as imagens do computador para a TV e liga o protetor (`--minutes`, `--replace`, `--off`). O `restore.sh` também devolve o protetor da Amazon. | `scripts/` |
+> | **`scripts/screensaver-images.py`** baixa fundos de séries, animes (TVmaze) e filmes (TMDB, com `TMDB_API_KEY`). As imagens ficam fora do git. | `scripts/` |
+> | **Compila no Windows** (Git Bash): `launcher/build.sh` acha o SDK, usa `d8.bat`/`apksigner.bat` e o `jar` quando não há `zip`. | `launcher/build.sh` |
+> | `scripts/launcher.sh` instala o launcher **compilado deste fork** (o APK oficial não tem as mudanças acima). Para usar o oficial: `LAUNCHER_FROM=release`. | `scripts/launcher.sh` |
+>
+> **Usar** (com a TV no `adb` e `ADB_SERIAL` definido se houver mais de um aparelho):
+>
+> ```sh
+> ./launcher/install.sh --build                      # compila e instala o launcher deste fork
+> python3 -I scripts/screensaver-images.py           # baixa as imagens para screensaver-images/
+> ./scripts/screensaver.sh screensaver-images        # manda para a TV e liga o protetor
+> ./scripts/screensaver.sh --off                     # volta ao protetor da Amazon
+> ```
+>
+> O launcher deste fork é assinado com uma chave própria (`launcher/release.keystore`, fora do git).
+> Para trocar de/para o APK oficial é preciso desinstalar antes (`./launcher/install.sh --undo`
+> e `adb uninstall tv.dumbtv.home`), porque as assinaturas são diferentes.
+> Testado num Fire TV Stick HD (AFTSS), Fire OS 7.7. As imagens baixadas são material promocional
+> dos estúdios: uso pessoal.
+
+---
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">

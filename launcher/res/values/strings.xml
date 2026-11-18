@@ -148,4 +148,8 @@
     <string name="choice_library">Library banner</string>
     <string name="choice_library_on">Shown</string>
     <string name="choice_library_off">Hidden</string>
+
+    <!-- Screensaver -->
+    <string name="screensaver_label">dumbtv screensaver</string>
+    <string name="screensaver_empty">No images yet.\nPut .jpg or .png files in:\n%1$s\n(./scripts/screensaver.sh does it from a computer)</string>
 </resources>

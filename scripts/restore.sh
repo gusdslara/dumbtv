@@ -71,9 +71,13 @@ for p in $(list_of "$(fos never-disable.txt)" | awk '{print $1}'); do
 done
 
 step "screensaver"
-if [[ $(dev1 settings get secure screensaver_components) == "$AOSP_DREAM" ]]; then
+# The dumbtv screensaver goes with the launcher: hand the TV its own one back too.
+dream_now=$(dev1 settings get secure screensaver_components)
+if [[ $dream_now == "$AOSP_DREAM" || $dream_now == tv.dumbtv.home/.Screensaver ]]; then
   want=$(restore_value secure screensaver_components "$(dev1 settings get secure screensaver_default_component)")
-  if [[ -n $want && $want != null && $want != "$AOSP_DREAM" ]]; then
+  # Never hand back the dumbtv one; Android's own beats a screensaver that is gone.
+  case $want in ''|null|tv.dumbtv.home/*) want=$AOSP_DREAM ;; esac
+  if [[ $want != "$dream_now" ]]; then
     acmd settings put secure screensaver_components "$want" >/dev/null
     printf '  %-46s %s\n' screensaver_components "$want"
   fi

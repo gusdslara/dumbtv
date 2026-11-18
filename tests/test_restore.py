@@ -65,6 +65,22 @@ class RestoreTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(state["settings"]["secure/screensaver_components"], amazon)
 
+    def test_the_dumbtv_screensaver_hands_amazons_back(self):
+        amazon = "com.amazon.ftv.screensaver/.app.services.ScreensaverService"
+        result, _, state = self.run_restore(settings={
+            "secure/screensaver_components": "tv.dumbtv.home/.Screensaver",
+            "secure/screensaver_default_component": amazon,
+        })
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(state["settings"]["secure/screensaver_components"], amazon)
+
+    def test_the_dumbtv_screensaver_without_a_default_falls_back_to_androids(self):
+        result, _, state = self.run_restore(settings={
+            "secure/screensaver_components": "tv.dumbtv.home/.Screensaver",
+        })
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(state["settings"]["secure/screensaver_components"], "com.android.dreams.basic/.Colors")
+
     def test_a_screensaver_dumbtv_did_not_set_is_kept(self):
         mine = "com.example.dream/.Photos"
         result, _, state = self.run_restore(settings={

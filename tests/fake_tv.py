@@ -154,6 +154,8 @@ elif words[:2] == ['dumpsys', 'package']:
     print('    userId=10050')
     if words[2:] and words[2] in state.get('versions', {}):
         print(f"    versionCode={state['versions'][words[2]]} minSdk=21 targetSdk=29")
+    for component in state.get('components', {}).get(words[2] if words[2:] else '', []):
+        print(f'        1a2b3c {component} filter 4d5e6f')
 elif words[:1] == ['cat'] and len(words) == 2 and words[1] in state.get('files', {}):
     sys.stdout.write(state['files'][words[1]])
 elif words[:1] == ['cat'] and len(words) == 2:

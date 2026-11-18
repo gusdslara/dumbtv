@@ -144,4 +144,8 @@
     <string name="choice_library">Banner da biblioteca</string>
     <string name="choice_library_on">Visível</string>
     <string name="choice_library_off">Oculto</string>
+
+    <!-- Protetor de tela -->
+    <string name="screensaver_label">Protetor de tela dumbtv</string>
+    <string name="screensaver_empty">Nenhuma imagem ainda.\nCopie arquivos .jpg ou .png para:\n%1$s\n(./scripts/screensaver.sh faz isso pelo computador)</string>
 </resources>

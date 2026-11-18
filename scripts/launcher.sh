@@ -19,7 +19,15 @@ PKG=tv.dumbtv.home
 
 step "plan"
 note "install dumbtv home: open source, 116 KB, no internet permission, no ad ID"
-note "the prebuilt APK comes from this repo's GitHub release and is checksum-verified"
+# This fork's launcher (Portuguese, built-in screensaver) is not in the upstream release, so it
+# is built from source by default. LAUNCHER_FROM=release installs the upstream APK instead.
+INSTALL_FLAGS=(--build)
+if [[ ${LAUNCHER_FROM:-build} == release ]]; then
+  INSTALL_FLAGS=()
+  note "the prebuilt APK comes from the upstream GitHub release and is checksum-verified"
+else
+  note "built from this fork's source (needs a JDK and the Android SDK); LAUNCHER_FROM=release for upstream's APK"
+fi
 if [[ $SDK -lt 28 ]]; then
   note "take over HOME: Keeper (UsageStats + moveTaskToFront, no accessibility)"
 else
@@ -27,12 +35,13 @@ else
 fi
 note "Amazon's launcher stays installed: hold HOME for Fire OS's menu, or Options > Open Amazon's home screen"
 if [[ $DRY_RUN == 1 ]]; then
-  note "[dry-run] ADB=$ADB ADB_SERIAL=$SERIAL launcher/install.sh"
+  note "[dry-run] ADB=$ADB ADB_SERIAL=$SERIAL launcher/install.sh ${INSTALL_FLAGS[*]+"${INSTALL_FLAGS[*]}"}"
   exit 0
 fi
 confirm "Replace the home screen on $SERIAL?" || die "cancelled"
 
-ADB=$ADB ADB_SERIAL=$SERIAL "$ROOT/launcher/install.sh" || die "launcher install failed (see above)"
+ADB=$ADB ADB_SERIAL=$SERIAL "$ROOT/launcher/install.sh" ${INSTALL_FLAGS[@]+"${INSTALL_FLAGS[@]}"} ||
+  die "launcher install failed (see above)"
 
 for _ in 1 2 3 4 5 6 7 8 9 10; do
   sleep 1

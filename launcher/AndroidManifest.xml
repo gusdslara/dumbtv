@@ -92,6 +92,20 @@
             </intent-filter>
         </receiver>
 
+        <!-- The screensaver: scripts/screensaver.sh pushes the images and points
+             settings secure screensaver_components here. Exported only to the system,
+             which binds it with BIND_DREAM_SERVICE. -->
+        <service
+            android:name=".Screensaver"
+            android:exported="true"
+            android:label="@string/screensaver_label"
+            android:permission="android.permission.BIND_DREAM_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+
         <service
             android:name=".Guard"
             android:label="@string/guard_label"
