@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="guard_description">Envia o botão HOME para a tela inicial do dumbtv em vez da tela da Amazon. Não lê nada da tela e não tem acesso à internet.</string>
+    <string name="guard_description">Envia o botão HOME para a tela inicial do dumbtv em vez da tela inicial da Amazon. Não lê o conteúdo da tela e não tem acesso à internet.</string>
 
     <!-- Home screen -->
     <string name="options">Opções</string>
@@ -54,7 +54,7 @@
     <string name="open_amazon_home">Abrir a tela inicial da Amazon</string>
     <string name="done">Concluído</string>
     <string name="reset_title">Redefinir o layout da tela inicial?</string>
-    <string name="reset_message">Ordem, nomes, ícones escolhidos e blocos ocultos voltam ao padrão. Cores e tamanhos ficam.</string>
+    <string name="reset_message">Ordem, nomes, ícones escolhidos e blocos ocultos voltam ao padrão. Cores e tamanhos são mantidos.</string>
     <string name="reset">Redefinir</string>
     <string name="lock_on">Opções e Configurações agora estão ocultas na tela inicial. Segure ☰ Menu por %1$d segundos para voltar aqui.</string>
     <string name="about">Arquivo de configurações: %1$s\nUm papel de parede: nomeie exatamente wallpaper.jpg (ou .png) e coloque nessa pasta\nVários papéis de parede: coloque em %2$s/ com qualquer nome e escolha uma rotação\nDepois escolha Fundo › Arquivo de imagem ou Tom adaptativo do papel de parede. Não precisa de permissão\nNo Fire OS 8 o adb não alcança essa pasta; use %3$s (Exportar configurações coloca uma cópia lá)\nTom adaptativo do papel de parede mostra grafite até você adicionar um papel de parede\nBanner da biblioteca: coloque imagens e %4$s em %5$s/ nessa pasta\nPacote de ícones: instale um e escolha acima; segure OK em um bloco › Ícone para escolher o ícone de um app\nSem permissão de internet. Sem rastreamento, sem anúncios, sem contas.</string>
@@ -89,8 +89,8 @@
     <string name="choice_layout_rows">Linhas</string>
     <string name="choice_layout_grid">Grade</string>
     <string name="choice_position">Posição na tela</string>
-    <string name="choice_position_top">Topo</string>
-    <string name="choice_position_bottom">Base</string>
+    <string name="choice_position_top">Em cima</string>
+    <string name="choice_position_bottom">Embaixo</string>
     <string name="choice_order">Ordem dos apps</string>
     <string name="choice_order_custom">Sua ordem</string>
     <string name="choice_order_recent">Usados recentemente</string>
